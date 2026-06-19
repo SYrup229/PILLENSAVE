@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8" />
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<title>Wire Inspector — Dual Camera</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#7dd3fc",
+          surface: "#0f1524",
+          background: "#0a0e1a",
+          "surface-container": "#141c2e",
+          "surface-container-high": "#1a2438",
+          "on-surface": "#e0e8f0",
+          "on-surface-variant": "#a0b4c4",
+          outline: "#4a6070",
+          "outline-variant": "#2a3a48",
+          error: "#ff6b6b",
+        },
+        fontFamily: { headline: ["Inter"], body: ["Inter"], label: ["Inter"] },
+        borderRadius: { DEFAULT: "0.5rem", lg: "1rem", xl: "1.5rem", full: "9999px" },
+      },
+    },
+  };
+</script>
+<style>
+  body { font-family: "Inter", sans-serif; }
+  .glass-panel {
+    background: rgba(15, 21, 36, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(125, 211, 252, 0.1);
+  }
+  .glass-panel-elevated {
+    background: rgba(15, 21, 36, 0.75);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(125, 211, 252, 0.15);
+  }
+  .material-symbols-outlined { font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(125, 211, 252, 0.02); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(125, 211, 252, 0.2); border-radius: 10px; }
+  .feed-canvas { width: 100%; height: 100%; display: block; transform-origin: 0 0; transition: none; cursor: grab; }
+  .feed-canvas:active { cursor: grabbing; }
+  .feed-wrap { overflow: hidden; }
+  .zoom-pill {
+    position: absolute; bottom: 12px; left: 12px;
+    background: rgba(10,14,26,0.7); backdrop-filter: blur(6px);
+    border: 1px solid rgba(125,211,252,0.2); border-radius: 9999px;
+    padding: 4px 10px; font-size: 10px; color: #7dd3fc;
+    font-family: ui-monospace, monospace; user-select: none;
+    pointer-events: none;
+  }
+  .zoom-reset {
+    position: absolute; bottom: 12px; left: 70px;
+    background: rgba(10,14,26,0.7); backdrop-filter: blur(6px);
+    border: 1px solid rgba(125,211,252,0.2); border-radius: 9999px;
+    padding: 4px 10px; font-size: 10px; color: #7dd3fc;
+    cursor: pointer;
+  }
+  .zoom-reset:hover { background: rgba(125,211,252,0.15); }
+</style>
+</head>
+<body class="bg-background text-on-surface antialiased">
+
+<!-- Top bar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0a0e1a]/80 backdrop-blur-xl border-b border-sky-400/10">
+  <div class="flex items-center gap-4">
+    <span class="text-xl font-semibold tracking-tight text-sky-300">Wire Inspector</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <div id="cam1-status-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+      <span class="material-symbols-outlined text-xs text-primary" style="font-variation-settings: 'FILL' 1;">videocam</span>
+      <span class="text-xs font-medium text-primary uppercase tracking-wider">Cam 1: …</span>
+    </div>
+    <div id="cam2-status-pill" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+      <span class="material-symbols-outlined text-xs text-primary" style="font-variation-settings: 'FILL' 1;">videocam</span>
+      <span class="text-xs font-medium text-primary uppercase tracking-wider">Cam 2: …</span>
+    </div>
+  </div>
+</header>
+
+<!-- Tabs -->
+<nav class="fixed top-16 left-0 w-full z-40 bg-[#0a0e1a]/70 backdrop-blur-md border-b border-sky-400/10">
+  <div class="max-w-6xl mx-auto flex items-center gap-1 px-6">
+    <button type="button" id="tab-live"     class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-colors">Live</button>
+    <button type="button" id="tab-calibrate" class="tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-colors">Calibration</button>
+  </div>
+</nav>
+
+<!-- Main -->
+<main class="pt-32 px-6 pb-12 min-h-screen">
+  <!-- ── Live view ─────────────────────────────────────────────────────── -->
+  <section id="view-live" class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Camera feeds -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="glass-panel rounded-xl overflow-hidden group">
+        <div id="cam1-wrap" class="relative aspect-video bg-black feed-wrap">
+          <canvas id="cam1-canvas" class="feed-canvas"></canvas>
+          <div class="absolute top-4 left-4 px-2 py-1 bg-black/50 backdrop-blur-md rounded text-[10px] font-bold text-white border border-white/20 uppercase tracking-widest">
+            CAM 01
+          </div>
+          <div class="absolute bottom-4 right-4 flex gap-2">
+            <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          </div>
+          <div id="cam1-zoom" class="zoom-pill">100%</div>
+          <button type="button" id="cam1-zoom-reset" class="zoom-reset">RESET</button>
+        </div>
+      </div>
+      <div class="glass-panel rounded-xl overflow-hidden group">
+        <div id="cam2-wrap" class="relative aspect-video bg-black feed-wrap">
+          <canvas id="cam2-canvas" class="feed-canvas"></canvas>
+          <div class="absolute top-4 left-4 px-2 py-1 bg-black/50 backdrop-blur-md rounded text-[10px] font-bold text-white border border-white/20 uppercase tracking-widest">
+            CAM 02
+          </div>
+          <div class="absolute bottom-4 right-4 flex gap-2">
+            <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          </div>
+          <div id="cam2-zoom" class="zoom-pill">100%</div>
+          <button type="button" id="cam2-zoom-reset" class="zoom-reset">RESET</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action -->
+    <div class="flex items-center justify-center gap-4 py-4 flex-wrap">
+      <button id="analyze-btn" class="group relative px-12 py-4 bg-primary/20 border border-primary/40 rounded-full overflow-hidden transition-all hover:bg-primary/30 active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">scan_delete</span>
+          <span class="text-primary font-bold tracking-[0.2em] text-sm" id="analyze-btn-label">CAPTURE &amp; ANALYZE</span>
+        </div>
+      </button>
+      <button id="upload-btn" class="group relative px-6 py-3 bg-primary/10 border border-primary/30 rounded-full overflow-hidden transition-all hover:bg-primary/20 active:scale-95 duration-200">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">upload</span>
+          <span class="text-primary font-semibold tracking-[0.15em] text-xs">UPLOAD</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Upload modal -->
+    <div id="upload-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div class="glass-panel-elevated rounded-xl p-8 w-full max-w-md mx-4 shadow-[0_0_60px_rgba(125,211,252,0.15)]">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold text-sky-300 tracking-tight">Manual Upload</h3>
+          <button id="upload-close" class="material-symbols-outlined text-on-surface-variant hover:text-on-surface">close</button>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-6">Upload one or both camera images. Detection runs on whatever is provided.</p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Cam 1 image</label>
+            <input id="upload-cam1" type="file" accept="image/*" title="Cam 1 image" class="block w-full text-xs text-on-surface
+              file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0
+              file:text-xs file:font-semibold file:bg-primary/20 file:text-primary
+              hover:file:bg-primary/30 file:cursor-pointer cursor-pointer" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Cam 2 image</label>
+            <input id="upload-cam2" type="file" accept="image/*" title="Cam 2 image" class="block w-full text-xs text-on-surface
+              file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0
+              file:text-xs file:font-semibold file:bg-primary/20 file:text-primary
+              hover:file:bg-primary/30 file:cursor-pointer cursor-pointer" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-8">
+          <button id="upload-cancel" class="px-4 py-2 rounded-full text-xs font-semibold tracking-wider text-on-surface-variant hover:bg-white/5">CANCEL</button>
+          <button id="upload-submit" class="px-6 py-2 rounded-full bg-primary/20 border border-primary/40 text-primary text-xs font-bold tracking-wider hover:bg-primary/30 disabled:opacity-50 disabled:cursor-not-allowed">ANALYZE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result banner -->
+    <div id="result-banner" class="hidden w-full glass-panel-elevated rounded-xl border-l-4 p-8 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <div id="result-icon-wrap" class="w-16 h-16 rounded-full flex items-center justify-center">
+          <span id="result-icon" class="material-symbols-outlined text-4xl" style="font-variation-settings: 'wght' 700;">check</span>
+        </div>
+        <div>
+          <h3 id="result-title" class="text-4xl font-extrabold tracking-tight">—</h3>
+          <p id="result-subtitle" class="text-on-surface-variant font-medium">—</p>
+        </div>
+      </div>
+      <div class="hidden sm:block text-right">
+        <div class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Last analysis</div>
+        <div id="result-timestamp" class="text-sm font-mono text-on-surface">—</div>
+        <div id="result-timing"   class="text-[11px] text-on-surface-variant mt-1">—</div>
+      </div>
+    </div>
+
+    <!-- Detection list (split) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="glass-panel rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-sky-400/10 flex justify-between items-center bg-white/5">
+          <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Cam 1 — Regions detected</span>
+          <span id="cam1-count" class="text-xs text-primary">0</span>
+        </div>
+        <div id="cam1-list" class="max-h-[300px] overflow-y-auto custom-scrollbar p-2 text-sm">
+          <div class="px-4 py-6 text-on-surface-variant text-xs italic">No analysis yet.</div>
+        </div>
+      </div>
+      <div class="glass-panel rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-sky-400/10 flex justify-between items-center bg-white/5">
+          <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Cam 2 — Regions detected</span>
+          <span id="cam2-count" class="text-xs text-primary">0</span>
+        </div>
+        <div id="cam2-list" class="max-h-[300px] overflow-y-auto custom-scrollbar p-2 text-sm">
+          <div class="px-4 py-6 text-on-surface-variant text-xs italic">No analysis yet.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Calibration view ───────────────────────────────────────────────── -->
+  <section id="view-calibrate" class="max-w-6xl mx-auto space-y-6 hidden">
+    <div class="glass-panel rounded-xl p-6">
+      <h2 class="text-lg font-bold text-sky-300 mb-2">Anomaly Threshold Calibration</h2>
+      <p class="text-xs text-on-surface-variant mb-6">
+        Upload folders of <span class="text-primary">known-correct</span> images for each camera. Each image is
+        run through YOLO + PatchCore (raw, no multiplier). For each region we record the
+        <code>score / raw_threshold</code> ratio across all images. The suggested multiplier is the worst observed
+        ratio plus a 10% safety margin — large enough that every uploaded image registers PASS.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Cam 1 images</label>
+          <input id="cal-cam1" type="file" accept="image/*" multiple
+                 title="Cam 1 correct images (select multiple)"
+                 class="block w-full text-xs text-on-surface
+                        file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0
+                        file:text-xs file:font-semibold file:bg-primary/20 file:text-primary
+                        hover:file:bg-primary/30 file:cursor-pointer cursor-pointer" />
+          <div id="cal-cam1-count" class="text-[11px] text-on-surface-variant mt-1">No images selected</div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Cam 2 images</label>
+          <input id="cal-cam2" type="file" accept="image/*" multiple
+                 title="Cam 2 correct images (select multiple)"
+                 class="block w-full text-xs text-on-surface
+                        file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0
+                        file:text-xs file:font-semibold file:bg-primary/20 file:text-primary
+                        hover:file:bg-primary/30 file:cursor-pointer cursor-pointer" />
+          <div id="cal-cam2-count" class="text-[11px] text-on-surface-variant mt-1">No images selected</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 mt-6">
+        <button type="button" id="cal-run"
+                class="px-6 py-3 bg-primary/20 border border-primary/40 rounded-full text-primary text-xs font-bold tracking-wider hover:bg-primary/30 disabled:opacity-50 disabled:cursor-not-allowed">
+          RUN CALIBRATION
+        </button>
+        <span id="cal-status" class="text-xs text-on-surface-variant"></span>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="cal-result" class="hidden glass-panel rounded-xl p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-sky-300">Suggested Calibration</h3>
+          <p id="cal-summary" class="text-xs text-on-surface-variant mt-1">—</p>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Suggested global multiplier</div>
+          <div id="cal-suggested" class="text-3xl font-extrabold text-emerald-500">—</div>
+          <div id="cal-current"   class="text-[11px] text-on-surface-variant">current: —</div>
+        </div>
+      </div>
+
+      <!-- Per-region tables (cam1 / cam2) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-panel-elevated rounded-lg overflow-hidden">
+          <div class="px-4 py-2 border-b border-sky-400/10 bg-white/5 flex justify-between items-center">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Cam 1 per-region</span>
+            <span id="cal-cam1-meta" class="text-[10px] text-primary">—</span>
+          </div>
+          <div id="cal-cam1-table" class="max-h-[300px] overflow-y-auto custom-scrollbar text-xs"></div>
+        </div>
+        <div class="glass-panel-elevated rounded-lg overflow-hidden">
+          <div class="px-4 py-2 border-b border-sky-400/10 bg-white/5 flex justify-between items-center">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Cam 2 per-region</span>
+            <span id="cal-cam2-meta" class="text-[10px] text-primary">—</span>
+          </div>
+          <div id="cal-cam2-table" class="max-h-[300px] overflow-y-auto custom-scrollbar text-xs"></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" id="cal-save-global"
+                class="px-5 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 text-xs font-bold tracking-wider hover:bg-emerald-500/30">
+          SAVE GLOBAL MULTIPLIER
+        </button>
+        <button type="button" id="cal-save-per-region"
+                class="px-5 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 text-xs font-bold tracking-wider hover:bg-emerald-500/30">
+          SAVE PER-REGION OVERRIDES
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const cam1Canvas = $("cam1-canvas");
+const cam2Canvas = $("cam2-canvas");
+const cam1Ctx = cam1Canvas.getContext("2d");
+const cam2Ctx = cam2Canvas.getContext("2d");
+const analyzeBtn = $("analyze-btn");
+const analyzeBtnLabel = $("analyze-btn-label");
+
+let lastImages = { cam1: null, cam2: null };
+
+// ── Camera status polling ───────────────────────────────────────────────
+async function pollStatus() {
+  try {
+    const r = await fetch("/camera-status");
+    const s = await r.json();
+    setPill("cam1-status-pill", "Cam 1", s.cam1);
+    setPill("cam2-status-pill", "Cam 2", s.cam2);
+  } catch (_) {
+    setPill("cam1-status-pill", "Cam 1", false);
+    setPill("cam2-status-pill", "Cam 2", false);
+  }
+}
+function setPill(id, label, ok) {
+  const el = $(id);
+  if (!el) return;
+  el.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border " +
+    (ok ? "bg-primary/10 border-primary/20" : "bg-error/10 border-error/30");
+  el.querySelector("span:last-child").className =
+    "text-xs font-medium uppercase tracking-wider " + (ok ? "text-primary" : "text-error");
+  el.querySelector("span:last-child").textContent = `${label}: ${ok ? "Active" : "Offline"}`;
+  el.querySelector("span:first-child").className =
+    "material-symbols-outlined text-xs " + (ok ? "text-primary" : "text-error");
+}
+setInterval(pollStatus, 3000);
+pollStatus();
+
+// ── Image + detection rendering ─────────────────────────────────────────
+function statusColor(d) {
+  // Returns {stroke, fill, text} based on anomaly status
+  if (d.status === "anomaly") return { stroke: "#ff6b6b", fill: "rgba(255,107,107,0.22)", text: "#ff6b6b" };
+  if (d.status === "ok")      return { stroke: "#10b981", fill: "rgba(16,185,129,0.18)",  text: "#10b981" };
+  return { stroke: "#7dd3fc", fill: "rgba(125,211,252,0.18)", text: "#7dd3fc" };  // detected / no_bank / detector off
+}
+
+function drawImageWithBoxes(canvas, ctx, dataUrl, detections) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+      ctx.lineWidth = Math.max(2, img.naturalWidth / 600);
+      ctx.font = `${Math.max(14, img.naturalWidth / 110)}px Inter, sans-serif`;
+      ctx.textBaseline = "bottom";
+      for (const d of (detections || [])) {
+        const [x1, y1, x2, y2] = d.box;
+        const c = statusColor(d);
+        ctx.strokeStyle = c.stroke;
+        ctx.fillStyle   = c.fill;
+        ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+        const label = `${d.label} ${(d.confidence * 100).toFixed(0)}%`;
+        const tw = ctx.measureText(label).width;
+        const th = parseInt(ctx.font);
+        ctx.fillStyle = "rgba(10,14,26,0.85)";
+        ctx.fillRect(x1, y1 - th - 6, tw + 10, th + 6);
+        ctx.fillStyle = c.text;
+        ctx.fillText(label, x1 + 5, y1 - 3);
+      }
+      resolve();
+    };
+    img.src = dataUrl;
+  });
+}
+
+function renderList(containerId, detections) {
+  const c = $(containerId);
+  c.innerHTML = "";
+  if (!detections || detections.length === 0) {
+    c.innerHTML = `<div class="px-4 py-6 text-on-surface-variant text-xs italic">No regions detected.</div>`;
+    return;
+  }
+  detections.forEach((d, i) => {
+    const conf = (d.confidence * 100).toFixed(0);
+    let badgeClass, dotClass, textClass, label;
+    if (d.status === "anomaly") {
+      badgeClass = "bg-error/10 border-error/30";
+      dotClass   = "bg-error";
+      textClass  = "text-error";
+      label      = "ANOMALY";
+    } else if (d.status === "ok") {
+      badgeClass = "bg-emerald-500/10 border-emerald-500/20";
+      dotClass   = "bg-emerald-500";
+      textClass  = "text-emerald-500";
+      label      = "PASS";
+    } else {
+      badgeClass = "bg-primary/10 border-primary/20";
+      dotClass   = "bg-primary";
+      textClass  = "text-primary";
+      label      = (d.status === "no_bank") ? "NO BANK" : "DETECTED";
+    }
+
+    let scoreInfo = `${conf}%`;
+    if (d.score !== null && d.score !== undefined) {
+      scoreInfo = `s ${d.score.toFixed(2)} / t ${d.threshold.toFixed(2)}`;
+    }
+
+    const row = document.createElement("div");
+    row.className = "px-4 py-2.5 flex items-center justify-between border-b border-sky-400/5 hover:bg-sky-400/5 transition-colors";
+    row.innerHTML = `
+      <div class="flex items-center gap-4 min-w-0">
+        <span class="text-xs font-mono text-on-surface-variant">${String(i + 1).padStart(2, "0")}</span>
+        <div class="min-w-0">
+          <div class="font-medium truncate">${d.label}</div>
+          <div class="text-[10px] font-mono text-on-surface-variant">${scoreInfo}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 px-3 py-1 rounded border ${badgeClass}">
+        <span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span>
+        <span class="text-[10px] font-bold ${textClass} uppercase tracking-tighter">${label}</span>
+      </div>`;
+    c.appendChild(row);
+  });
+}
+
+function updateBanner(result) {
+  const banner = $("result-banner");
+  banner.classList.remove("hidden");
+  const s = result.summary;
+  const stage2 = s.stage2_loaded;
+  const total = s.total_count;
+  const anom = s.anomaly_count || 0;
+
+  let color, title, icon;
+  if (total === 0) {
+    color = "error"; title = "NOTHING DETECTED"; icon = "close";
+  } else if (!stage2) {
+    color = "primary"; title = "REGIONS FOUND"; icon = "search";
+  } else if (anom > 0) {
+    color = "error"; title = "ANOMALY DETECTED"; icon = "warning";
+  } else {
+    color = "emerald"; title = "PASS"; icon = "check";
+  }
+
+  banner.className = `w-full glass-panel-elevated rounded-xl border-l-4 p-8 flex items-center justify-between border-${color}-500`;
+  $("result-icon-wrap").className = `w-16 h-16 rounded-full flex items-center justify-center bg-${color}-500/20 border border-${color}-500/40`;
+  $("result-icon").className = `material-symbols-outlined text-${color}-500 text-4xl`;
+  $("result-icon").textContent = icon;
+  $("result-title").className = `text-4xl font-extrabold tracking-tight text-${color}-500`;
+  $("result-title").textContent = title;
+
+  const sub = stage2
+    ? `${total} region(s) — Cam1: ${s.cam1_count}, Cam2: ${s.cam2_count} — anomalies: ${anom}`
+    : `${total} region(s) — Cam1: ${s.cam1_count}, Cam2: ${s.cam2_count} — anomaly model not loaded`;
+  $("result-subtitle").textContent = sub;
+  $("result-timestamp").textContent = result.timestamp;
+
+  let timing = `capture ${s.capture_ms} ms · YOLO ${s.inference_ms} ms`;
+  if (stage2) timing += ` · PatchCore ${s.anomaly_ms} ms`;
+  $("result-timing").textContent = timing;
+}
+
+async function applyResult(result) {
+  if (!result.success) {
+    alert("Analysis failed: " + (result.error || "unknown"));
+    return;
+  }
+  lastImages.cam1 = result.cam1_image;
+  lastImages.cam2 = result.cam2_image;
+  if (result.cam1_image) {
+    await drawImageWithBoxes(cam1Canvas, cam1Ctx, result.cam1_image, result.cam1_detections);
+  }
+  if (result.cam2_image) {
+    await drawImageWithBoxes(cam2Canvas, cam2Ctx, result.cam2_image, result.cam2_detections);
+  }
+  renderList("cam1-list", result.cam1_detections);
+  renderList("cam2-list", result.cam2_detections);
+  $("cam1-count").textContent = `${result.summary.cam1_count} found`;
+  $("cam2-count").textContent = `${result.summary.cam2_count} found`;
+  updateBanner(result);
+}
+
+// ── Capture & Analyze ──────────────────────────────────────────────────
+analyzeBtn.addEventListener("click", async () => {
+  analyzeBtn.disabled = true;
+  analyzeBtnLabel.textContent = "ANALYZING…";
+  try {
+    const r = await fetch("/analyze", { method: "POST" });
+    await applyResult(await r.json());
+  } catch (e) {
+    alert("Request error: " + e.message);
+  } finally {
+    analyzeBtn.disabled = false;
+    analyzeBtnLabel.textContent = "CAPTURE & ANALYZE";
+  }
+});
+
+// ── Upload modal ────────────────────────────────────────────────────────
+const uploadBtn    = $("upload-btn");
+const uploadModal  = $("upload-modal");
+const uploadClose  = $("upload-close");
+const uploadCancel = $("upload-cancel");
+const uploadSubmit = $("upload-submit");
+const uploadCam1   = $("upload-cam1");
+const uploadCam2   = $("upload-cam2");
+
+function openUpload() {
+  uploadCam1.value = "";
+  uploadCam2.value = "";
+  uploadModal.classList.remove("hidden");
+}
+function closeUpload() {
+  uploadModal.classList.add("hidden");
+}
+uploadBtn.addEventListener("click", openUpload);
+uploadClose.addEventListener("click", closeUpload);
+uploadCancel.addEventListener("click", closeUpload);
+uploadModal.addEventListener("click", (e) => { if (e.target === uploadModal) closeUpload(); });
+
+uploadSubmit.addEventListener("click", async () => {
+  const f1 = uploadCam1.files[0];
+  const f2 = uploadCam2.files[0];
+  if (!f1 && !f2) {
+    alert("Select at least one image.");
+    return;
+  }
+  const fd = new FormData();
+  if (f1) fd.append("cam1", f1);
+  if (f2) fd.append("cam2", f2);
+
+  uploadSubmit.disabled = true;
+  uploadSubmit.textContent = "ANALYZING…";
+  try {
+    const r = await fetch("/analyze-upload", { method: "POST", body: fd });
+    const result = await r.json();
+    closeUpload();
+    await applyResult(result);
+  } catch (e) {
+    alert("Upload error: " + e.message);
+  } finally {
+    uploadSubmit.disabled = false;
+    uploadSubmit.textContent = "ANALYZE";
+  }
+});
+
+// ── Camera zoom + pan ───────────────────────────────────────────────────
+function setupZoom(canvasId, wrapId, pillId, resetId) {
+  const canvas = document.getElementById(canvasId);
+  const wrap   = document.getElementById(wrapId);
+  const pill   = document.getElementById(pillId);
+  const reset  = document.getElementById(resetId);
+
+  let scale = 1, tx = 0, ty = 0;
+  let dragging = false, lastX = 0, lastY = 0;
+  const MIN = 1, MAX = 8;
+
+  function apply() {
+    const r = wrap.getBoundingClientRect();
+    const w = r.width  * scale;
+    const h = r.height * scale;
+    // Clamp pan so we can't drag the image fully off-screen
+    tx = Math.max(Math.min(tx, 0), r.width  - w);
+    ty = Math.max(Math.min(ty, 0), r.height - h);
+    if (scale === 1) { tx = 0; ty = 0; }
+    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    pill.textContent = `${Math.round(scale * 100)}%`;
+  }
+
+  wrap.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const r = wrap.getBoundingClientRect();
+    const cx = e.clientX - r.left;
+    const cy = e.clientY - r.top;
+    const factor = e.deltaY < 0 ? 1.2 : 1 / 1.2;
+    const newScale = Math.max(MIN, Math.min(MAX, scale * factor));
+    // Anchor zoom at cursor: keep the same image point under the pointer
+    const ix = (cx - tx) / scale;
+    const iy = (cy - ty) / scale;
+    scale = newScale;
+    tx = cx - ix * scale;
+    ty = cy - iy * scale;
+    apply();
+  }, { passive: false });
+
+  wrap.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    tx += e.clientX - lastX;
+    ty += e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    apply();
+  });
+  window.addEventListener("mouseup", () => { dragging = false; });
+
+  reset.addEventListener("click", () => { scale = 1; tx = 0; ty = 0; apply(); });
+  apply();
+}
+setupZoom("cam1-canvas", "cam1-wrap", "cam1-zoom", "cam1-zoom-reset");
+setupZoom("cam2-canvas", "cam2-wrap", "cam2-zoom", "cam2-zoom-reset");
+
+// ── Tab switching ───────────────────────────────────────────────────────
+const tabLive      = $("tab-live");
+const tabCalibrate = $("tab-calibrate");
+const viewLive      = $("view-live");
+const viewCalibrate = $("view-calibrate");
+
+function setTab(name) {
+  const isLive = name === "live";
+  viewLive.classList.toggle("hidden", !isLive);
+  viewCalibrate.classList.toggle("hidden", isLive);
+  tabLive.className      = "tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-colors " +
+    (isLive ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-primary");
+  tabCalibrate.className = "tab-btn px-4 py-3 text-xs font-bold uppercase tracking-widest border-b-2 transition-colors " +
+    (!isLive ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-primary");
+}
+tabLive.addEventListener("click",      () => setTab("live"));
+tabCalibrate.addEventListener("click", () => setTab("calibrate"));
+setTab("live");
+
+// ── Calibration ─────────────────────────────────────────────────────────
+const calCam1   = $("cal-cam1");
+const calCam2   = $("cal-cam2");
+const calRun    = $("cal-run");
+const calStatus = $("cal-status");
+const calResult = $("cal-result");
+
+let lastCalibration = null;
+
+function imageFiles(input) {
+  return Array.from(input.files || []).filter(f => f.type.startsWith("image/"));
+}
+
+calCam1.addEventListener("change", () => {
+  $("cal-cam1-count").textContent = `${imageFiles(calCam1).length} image(s) selected`;
+});
+calCam2.addEventListener("change", () => {
+  $("cal-cam2-count").textContent = `${imageFiles(calCam2).length} image(s) selected`;
+});
+
+function renderRegionTable(containerId, regions, suggestedGlobal) {
+  const c = $(containerId);
+  c.innerHTML = "";
+  const labels = Object.keys(regions).sort();
+  if (labels.length === 0) {
+    c.innerHTML = `<div class="px-4 py-6 text-on-surface-variant italic">No detections.</div>`;
+    return;
+  }
+  for (const label of labels) {
+    const r = regions[label];
+    const exceedsGlobal = r.suggested_multiplier > suggestedGlobal;
+    const row = document.createElement("div");
+    row.className = "px-4 py-2 flex items-center justify-between border-b border-sky-400/5";
+    row.innerHTML = `
+      <div class="min-w-0">
+        <div class="font-medium truncate">${label}</div>
+        <div class="text-[10px] font-mono text-on-surface-variant">
+          n=${r.count} · max=${r.max_ratio.toFixed(2)} · mean=${r.mean_ratio.toFixed(2)}±${r.std_ratio.toFixed(2)}
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] text-on-surface-variant">multiplier</div>
+        <div class="font-bold ${exceedsGlobal ? 'text-error' : 'text-emerald-500'}">${r.suggested_multiplier.toFixed(2)}</div>
+      </div>`;
+    c.appendChild(row);
+  }
+}
+
+calRun.addEventListener("click", async () => {
+  const f1 = imageFiles(calCam1);
+  const f2 = imageFiles(calCam2);
+  if (f1.length === 0 && f2.length === 0) {
+    alert("Select at least one folder of images.");
+    return;
+  }
+
+  const fd = new FormData();
+  for (const f of f1) fd.append("cam1", f);
+  for (const f of f2) fd.append("cam2", f);
+
+  calRun.disabled = true;
+  calStatus.textContent = `analyzing ${f1.length + f2.length} image(s)…`;
+  calResult.classList.add("hidden");
+
+  try {
+    const r = await fetch("/calibrate", { method: "POST", body: fd });
+    const result = await r.json();
+    if (!result.success) {
+      alert("Calibration failed: " + (result.error || "unknown"));
+      return;
+    }
+    lastCalibration = result;
+    calResult.classList.remove("hidden");
+
+    const c1 = result.cam1, c2 = result.cam2;
+    $("cal-summary").textContent =
+      `${c1.images_used + c2.images_used} image(s), ${c1.detections_total + c2.detections_total} detection(s) · ${result.elapsed_ms}ms · safety margin ×${result.safety_margin}`;
+    $("cal-suggested").textContent = result.suggested_global_multiplier.toFixed(3);
+    $("cal-current").textContent   = `current: ${result.current_global_multiplier.toFixed(3)}`;
+    $("cal-cam1-meta").textContent = `${c1.images_used} img · ${c1.detections_total} det`;
+    $("cal-cam2-meta").textContent = `${c2.images_used} img · ${c2.detections_total} det`;
+    renderRegionTable("cal-cam1-table", c1.regions, result.suggested_global_multiplier);
+    renderRegionTable("cal-cam2-table", c2.regions, result.suggested_global_multiplier);
+    calStatus.textContent = "done";
+  } catch (e) {
+    alert("Calibration error: " + e.message);
+  } finally {
+    calRun.disabled = false;
+  }
+});
+
+async function saveCalibration(payload) {
+  const r = await fetch("/calibrate/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = await r.json();
+  if (!result.success) {
+    alert("Save failed: " + (result.error || "unknown"));
+    return;
+  }
+  alert(`Saved.\nGlobal multiplier: ${result.global_multiplier.toFixed(3)}\nPer-region overrides: ${
+    Object.values(result.per_region).reduce((a, d) => a + Object.keys(d).length, 0)
+  }`);
+}
+
+$("cal-save-global").addEventListener("click", () => {
+  if (!lastCalibration) return;
+  saveCalibration({
+    global_multiplier: lastCalibration.suggested_global_multiplier,
+    per_region: { cam1: {}, cam2: {} },
+  });
+});
+
+$("cal-save-per-region").addEventListener("click", () => {
+  if (!lastCalibration) return;
+  const per_region = { cam1: {}, cam2: {} };
+  for (const cam of ["cam1", "cam2"]) {
+    for (const [label, r] of Object.entries(lastCalibration[cam].regions)) {
+      per_region[cam][label] = r.suggested_multiplier;
+    }
+  }
+  saveCalibration({
+    global_multiplier: 1.0,   // baseline; per-region overrides take precedence
+    per_region,
+  });
+});
+</script>
+</body>
+</html>

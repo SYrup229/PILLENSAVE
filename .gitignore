@@ -1,0 +1,22 @@
+# Model weights and PatchCore banks (too large for GitHub)
+checkpoints/*.pt
+checkpoints/*.pkl
+
+# User-tuned calibration overrides (per-deployment)
+checkpoints/calibration.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Test outputs
+testing/results/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

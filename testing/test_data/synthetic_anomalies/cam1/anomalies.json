@@ -1,0 +1,172 @@
+{
+  "cam1_2026-04-10_12-50-37_anom_01.jpg": {
+    "source": "2026-04-10_12-50-37.jpg",
+    "missing_regions": [
+      "Row 7 Top",
+      "Row 1 Top",
+      "Row 13 Bottom"
+    ]
+  },
+  "cam1_2026-04-10_12-50-37_anom_02.jpg": {
+    "source": "2026-04-10_12-50-37.jpg",
+    "missing_regions": [
+      "Row 10 Top",
+      "Row 7 Top"
+    ]
+  },
+  "cam1_2026-04-10_12-50-37_anom_03.jpg": {
+    "source": "2026-04-10_12-50-37.jpg",
+    "missing_regions": [
+      "Row 7 Top"
+    ]
+  },
+  "cam1_2026-04-10_12-50-37_anom_04.jpg": {
+    "source": "2026-04-10_12-50-37.jpg",
+    "missing_regions": [
+      "Row 6 Top",
+      "Row 12 Top",
+      "Rows 6-9 Bottom"
+    ]
+  },
+  "cam1_2026-04-10_12-50-37_anom_05.jpg": {
+    "source": "2026-04-10_12-50-37.jpg",
+    "missing_regions": [
+      "Row 1 Top"
+    ]
+  },
+  "cam1_2026-04-11_17-48-03_anom_01.jpg": {
+    "source": "2026-04-11_17-48-03.jpg",
+    "missing_regions": [
+      "Row 14 Bottom",
+      "Row 10 Top"
+    ]
+  },
+  "cam1_2026-04-11_17-48-03_anom_02.jpg": {
+    "source": "2026-04-11_17-48-03.jpg",
+    "missing_regions": [
+      "Row 6 Top",
+      "Row 8 Top"
+    ]
+  },
+  "cam1_2026-04-11_17-48-03_anom_03.jpg": {
+    "source": "2026-04-11_17-48-03.jpg",
+    "missing_regions": [
+      "Row 1 Top",
+      "Rows 2-5 Top"
+    ]
+  },
+  "cam1_2026-04-11_17-48-03_anom_04.jpg": {
+    "source": "2026-04-11_17-48-03.jpg",
+    "missing_regions": [
+      "Row 1 Top",
+      "Rows 2-5 Top"
+    ]
+  },
+  "cam1_2026-04-11_17-48-03_anom_05.jpg": {
+    "source": "2026-04-11_17-48-03.jpg",
+    "missing_regions": [
+      "Row 7 Top",
+      "Row 8 Top"
+    ]
+  },
+  "cam1_2026-04-12_10-19-00_anom_01.jpg": {
+    "source": "2026-04-12_10-19-00.jpg",
+    "missing_regions": [
+      "Row 12 Top"
+    ]
+  },
+  "cam1_2026-04-12_10-19-00_anom_02.jpg": {
+    "source": "2026-04-12_10-19-00.jpg",
+    "missing_regions": [
+      "Row 8 Top",
+      "Row 10 Top",
+      "Row 9 Top"
+    ]
+  },
+  "cam1_2026-04-12_10-19-00_anom_03.jpg": {
+    "source": "2026-04-12_10-19-00.jpg",
+    "missing_regions": [
+      "Row 7 Top",
+      "Row 10 Top",
+      "Row 12 Top"
+    ]
+  },
+  "cam1_2026-04-12_10-19-00_anom_04.jpg": {
+    "source": "2026-04-12_10-19-00.jpg",
+    "missing_regions": [
+      "Row 1 Top",
+      "Row 10 Bottom"
+    ]
+  },
+  "cam1_2026-04-12_10-19-00_anom_05.jpg": {
+    "source": "2026-04-12_10-19-00.jpg",
+    "missing_regions": [
+      "Row 13 Bottom",
+      "Row 12 Top"
+    ]
+  },
+  "cam1_2026-04-13_08-41-09_anom_01.jpg": {
+    "source": "2026-04-13_08-41-09.jpg",
+    "missing_regions": [
+      "Row 7 Top",
+      "Row 6 Top"
+    ]
+  },
+  "cam1_2026-04-13_08-41-09_anom_02.jpg": {
+    "source": "2026-04-13_08-41-09.jpg",
+    "missing_regions": [
+      "Row 10 Top",
+      "Row 8 Top"
+    ]
+  },
+  "cam1_2026-04-13_08-41-09_anom_03.jpg": {
+    "source": "2026-04-13_08-41-09.jpg",
+    "missing_regions": [
+      "Row 10 Top"
+    ]
+  },
+  "cam1_2026-04-13_08-41-09_anom_04.jpg": {
+    "source": "2026-04-13_08-41-09.jpg",
+    "missing_regions": [
+      "Row 1 Top"
+    ]
+  },
+  "cam1_2026-04-13_08-41-09_anom_05.jpg": {
+    "source": "2026-04-13_08-41-09.jpg",
+    "missing_regions": [
+      "Row 9 Top"
+    ]
+  },
+  "cam1_2026-04-11_08-33-14_anom_01.jpg": {
+    "source": "2026-04-11_08-33-14.jpg",
+    "missing_regions": [
+      "Row 14 Top"
+    ]
+  },
+  "cam1_2026-04-11_08-33-14_anom_02.jpg": {
+    "source": "2026-04-11_08-33-14.jpg",
+    "missing_regions": [
+      "Row 10 Top"
+    ]
+  },
+  "cam1_2026-04-11_08-33-14_anom_03.jpg": {
+    "source": "2026-04-11_08-33-14.jpg",
+    "missing_regions": [
+      "Row 8 Top",
+      "Row 12 Top",
+      "Row 10 Bottom"
+    ]
+  },
+  "cam1_2026-04-11_08-33-14_anom_04.jpg": {
+    "source": "2026-04-11_08-33-14.jpg",
+    "missing_regions": [
+      "Row 1 Top"
+    ]
+  },
+  "cam1_2026-04-11_08-33-14_anom_05.jpg": {
+    "source": "2026-04-11_08-33-14.jpg",
+    "missing_regions": [
+      "Row 13 Top"
+    ]
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "cam2_2026-04-10_19-25-24_anom_01.jpg": {
+    "source": "2026-04-10_19-25-24.jpg",
+    "missing_regions": [
+      "Row 12 Top",
+      "Row 9 Top"
+    ]
+  },
+  "cam2_2026-04-10_19-25-24_anom_02.jpg": {
+    "source": "2026-04-10_19-25-24.jpg",
+    "missing_regions": [
+      "Rows 2-5 Top",
+      "Row 6 Top"
+    ]
+  },
+  "cam2_2026-04-10_19-25-24_anom_03.jpg": {
+    "source": "2026-04-10_19-25-24.jpg",
+    "missing_regions": [
+      "Row 1 Top",
+      "Row 1 Bottom"
+    ]
+  },
+  "cam2_2026-04-10_19-25-24_anom_04.jpg": {
+    "source": "2026-04-10_19-25-24.jpg",
+    "missing_regions": [
+      "Row 1 Top",
+      "Row 1 Bottom"
+    ]
+  },
+  "cam2_2026-04-10_19-25-24_anom_05.jpg": {
+    "source": "2026-04-10_19-25-24.jpg",
+    "missing_regions": [
+      "Row 2 Bottom",
+      "Row 6 Top"
+    ]
+  },
+  "cam2_2026-04-11_13-04-10_anom_01.jpg": {
+    "source": "2026-04-11_13-04-10.jpg",
+    "missing_regions": [
+      "Row 2 Bottom",
+      "Rows 2-5 Top"
+    ]
+  },
+  "cam2_2026-04-11_13-04-10_anom_02.jpg": {
+    "source": "2026-04-11_13-04-10.jpg",
+    "missing_regions": [
+      "Row 9 Top",
+      "Row 6 Top"
+    ]
+  },
+  "cam2_2026-04-11_13-04-10_anom_03.jpg": {
+    "source": "2026-04-11_13-04-10.jpg",
+    "missing_regions": [
+      "Row 9 Top"
+    ]
+  },
+  "cam2_2026-04-11_13-04-10_anom_04.jpg": {
+    "source": "2026-04-11_13-04-10.jpg",
+    "missing_regions": [
+      "Row 1 Top"
+    ]
+  },
+  "cam2_2026-04-11_13-04-10_anom_05.jpg": {
+    "source": "2026-04-11_13-04-10.jpg",
+    "missing_regions": [
+      "Row 7 Top"
+    ]
+  },
+  "cam2_2026-04-10_10-16-47_anom_01.jpg": {
+    "source": "2026-04-10_10-16-47.jpg",
+    "missing_regions": [
+      "Row 10 Top"
+    ]
+  },
+  "cam2_2026-04-10_10-16-47_anom_02.jpg": {
+    "source": "2026-04-10_10-16-47.jpg",
+    "missing_regions": [
+      "Row 6 Top",
+      "Row 9 Top",
+      "Row 7 Top"
+    ]
+  },
+  "cam2_2026-04-10_10-16-47_anom_03.jpg": {
+    "source": "2026-04-10_10-16-47.jpg",
+    "missing_regions": [
+      "Row 2 Bottom",
+      "Row 9 Top",
+      "Row 10 Top"
+    ]
+  },
+  "cam2_2026-04-10_10-16-47_anom_04.jpg": {
+    "source": "2026-04-10_10-16-47.jpg",
+    "missing_regions": [
+      "Row 1 Top",
+      "Rows 6-9 Bottom"
+    ]
+  },
+  "cam2_2026-04-10_10-16-47_anom_05.jpg": {
+    "source": "2026-04-10_10-16-47.jpg",
+    "missing_regions": [
+      "Row 11 Top",
+      "Row 10 Top"
+    ]
+  },
+  "cam2_2026-04-12_10-59-55_anom_01.jpg": {
+    "source": "2026-04-12_10-59-55.jpg",
+    "missing_regions": [
+      "Row 2 Bottom",
+      "Row 1 Top",
+      "Row 11 Top"
+    ]
+  },
+  "cam2_2026-04-12_10-59-55_anom_02.jpg": {
+    "source": "2026-04-12_10-59-55.jpg",
+    "missing_regions": [
+      "Row 9 Top",
+      "Row 2 Bottom"
+    ]
+  },
+  "cam2_2026-04-12_10-59-55_anom_03.jpg": {
+    "source": "2026-04-12_10-59-55.jpg",
+    "missing_regions": [
+      "Row 2 Bottom"
+    ]
+  },
+  "cam2_2026-04-12_10-59-55_anom_04.jpg": {
+    "source": "2026-04-12_10-59-55.jpg",
+    "missing_regions": [
+      "Rows 2-5 Top",
+      "Row 10 Top",
+      "Row 8 Top"
+    ]
+  },
+  "cam2_2026-04-12_10-59-55_anom_05.jpg": {
+    "source": "2026-04-12_10-59-55.jpg",
+    "missing_regions": [
+      "Row 1 Top"
+    ]
+  },
+  "cam2_2026-04-13_09-38-08_anom_01.jpg": {
+    "source": "2026-04-13_09-38-08.jpg",
+    "missing_regions": [
+      "Row 11 Bottom"
+    ]
+  },
+  "cam2_2026-04-13_09-38-08_anom_02.jpg": {
+    "source": "2026-04-13_09-38-08.jpg",
+    "missing_regions": [
+      "Row 9 Top"
+    ]
+  },
+  "cam2_2026-04-13_09-38-08_anom_03.jpg": {
+    "source": "2026-04-13_09-38-08.jpg",
+    "missing_regions": [
+      "Row 6 Top",
+      "Row 10 Top",
+      "Rows 6-9 Bottom"
+    ]
+  },
+  "cam2_2026-04-13_09-38-08_anom_04.jpg": {
+    "source": "2026-04-13_09-38-08.jpg",
+    "missing_regions": [
+      "Row 1 Top"
+    ]
+  },
+  "cam2_2026-04-13_09-38-08_anom_05.jpg": {
+    "source": "2026-04-13_09-38-08.jpg",
+    "missing_regions": [
+      "Row 10 Bottom"
+    ]
+  }
+}
